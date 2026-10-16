@@ -1047,10 +1047,12 @@ class RaftAuthPage extends StatelessWidget {
     super.key,
     required this.mode,
     required this.busy,
+    this.serverField,
     this.emailField,
     this.tokenField,
     this.passwordField,
     this.confirmField,
+    this.serverError,
     this.emailError,
     this.tokenError,
     this.passwordError,
@@ -1074,7 +1076,14 @@ class RaftAuthPage extends StatelessWidget {
   });
   final RaftAuthMode mode;
   final bool busy, accepted;
+
+  /// Native-only (no Web counterpart): the account server this client signs in
+  /// to. When set, it is rendered as an explicit form field above Email so a
+  /// person can point the client at their own server before signing in. Web
+  /// keeps the origin in a top-bar link instead.
+  final Widget? serverField;
   final Widget? emailField, tokenField, passwordField, confirmField;
+  final String? serverError;
   final String? emailError, tokenError, passwordError, confirmError;
   final String? banner, notice;
   final ValueChanged<bool>? onAccepted;
@@ -1135,6 +1144,18 @@ class RaftAuthPage extends StatelessWidget {
               child: RaftAuthBanner(text: tr(notice!), info: true),
             ),
           // <form className="space-y-4">
+          // Native-only: the account server is a first-class field here so a
+          // person can point the client at their own server before signing in.
+          if (serverField != null) ...[
+            RaftAuthField(
+              label: tr('Server URL'),
+              surface: false,
+              error: serverError,
+              child: serverField!,
+            ),
+            if (emailField != null || tokenField != null || passwordField != null)
+              const SizedBox(height: 16),
+          ],
           if (emailField != null)
             RaftAuthField(
               label: tr('Email'),

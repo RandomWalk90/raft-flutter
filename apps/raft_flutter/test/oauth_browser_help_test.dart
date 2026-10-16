@@ -125,17 +125,20 @@ void main() {
     expect(find.text("Browser didn't open?"), findsOneWidget);
     expect(find.text('Copy sign-in link'), findsOneWidget);
 
+    await t.ensureVisible(find.byKey(const ValueKey('auth-copy-sign-in-link')));
     await t.tap(find.byKey(const ValueKey('auth-copy-sign-in-link')));
     await t.pump();
     expect(copied, [_authorizationUrl], reason: 'the exact OAuth URL');
     expect(find.text('Link copied'), findsOneWidget);
 
+    await t.ensureVisible(find.byKey(const ValueKey('auth-open-again')));
     await t.tap(find.byKey(const ValueKey('auth-open-again')));
     await t.pump();
     expect(opened, hasLength(2));
     expect(opened.last.toString(), _authorizationUrl);
 
     // Cancelling the attempt takes the help away with it.
+    await t.ensureVisible(find.text('Cancel browser sign-in'));
     await t.tap(find.text('Cancel browser sign-in'));
     await _settle(t, 4);
     expect(_help, findsNothing);
@@ -158,9 +161,11 @@ void main() {
     // banner, the cancel link is still there.
     expect(find.text('Cancel browser sign-in'), findsOneWidget);
     expect(find.textContaining('Could not open'), findsNothing);
+    await t.ensureVisible(find.byKey(const ValueKey('auth-open-again')));
     await t.tap(find.byKey(const ValueKey('auth-open-again')));
     await t.pump();
     expect(attempts, hasLength(2));
+    await t.ensureVisible(find.text('Cancel browser sign-in'));
     await t.tap(find.text('Cancel browser sign-in'));
     await _settle(t, 4);
   });

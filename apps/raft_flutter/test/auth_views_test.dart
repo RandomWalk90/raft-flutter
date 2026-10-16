@@ -45,6 +45,53 @@ void main() {
     expect(accountUsernameError('pending_fixture'), isNotNull);
   });
   testWidgets(
+    'login page exposes an editable account-server field that feeds onLogin',
+    (tester) async {
+      final calls = <List<String>>[];
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: raftTheme(RaftFamily.elegant),
+          home: AuthView(
+            origin: 'https://api.raft.build',
+            onLogin: (b, e, p) async => calls.add([b, e, p]),
+            onRegister: (b, e, p, accepted) async {},
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // The native-only account-server field is a first-class input, not just
+      // the top-bar link: default matches the passed origin.
+      final serverField = find.byKey(const Key('login-server-field'));
+      expect(serverField, findsOneWidget);
+      expect(
+        find.descendant(
+          of: serverField,
+          matching: find.text('https://api.raft.build'),
+        ),
+        findsOneWidget,
+      );
+
+      // Pointing the client at another server and signing in uses that origin.
+      await tester.enterText(serverField, 'https://raft.example.test');
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.byKey(const Key('login-email')),
+        'alice@example.test',
+      );
+      await tester.enterText(
+        find.byKey(const Key('login-password')),
+        'valid-password',
+      );
+      await tester.ensureVisible(find.byKey(const Key('login-submit')));
+      await tester.tap(find.byKey(const Key('login-submit')));
+      await tester.pumpAndSettle();
+
+      expect(calls, hasLength(1));
+      expect(calls.single[0], 'https://raft.example.test');
+    },
+  );
+  testWidgets(
     'login preserves password spaces and validates origin before calling parent',
     (tester) async {
       final calls = <List<String>>[];
@@ -117,6 +164,7 @@ void main() {
         ),
       ),
     );
+    await tester.ensureVisible(find.text('Create one'));
     await tester.tapOnText(find.textRange.ofSubstring('Create one'));
     await tester.pumpAndSettle();
     await tester.enterText(
