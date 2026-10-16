@@ -1,0 +1,283 @@
+name: Build all platforms (self-hosted origin)
+
+# Fork-friendly build of this client for every platform, producing downloadable
+# artifacts (and optionally a GitHub Release). Unlike the official release
+# pipeline (release.yml / release-platform.yml -> tool/release.py), which pins
+# the official API/Web origins, this workflow builds with a configurable origin,
+# so a forked/self-hosted server can be baked into the app, and supports signing
+# when the corresponding secrets are present.
+#
+# Runs on every push to main (using the defaults below) and can be started by
+# hand with different inputs. The push trigger uses the workflow's default
+# inputs; a manual run can override the origin, platforms and release tag.
+#
+# Signing (all optional):
+#   Android: RAFT_ANDROID_KEYSTORE_BASE64, RAFT_ANDROID_STORE_PASSWORD,
+#            RAFT_ANDROID_KEY_PASSWORD, RAFT_ANDROID_KEY_ALIAS
+#   Apple:   APPLE_CERTIFICATE_BASE64, APPLE_CERTIFICATE_PASSWORD,
+#            APPLE_PROVISIONING_PROFILE_BASE64, APPLE_TEAM_ID, APPLE_SIGNING_IDENTITY
+# Without secrets the builds still run: Android falls back to a debug-signed APK
+# and Apple targets build unsigned (--no-codesign).
+
+on:
+  push:
+    branches: ['main']
+  workflow_dispatch:
+    inputs:
+      server_origin:
+        description: 'API origin baked into the build (RAFT_ORIGIN)'
+        type: string
+        required: true
+        default: 'https://raft.clawsouls.cn'
+      frontend_origin:
+        description: 'Web origin baked into the build (RAFT_FRONTEND_ORIGIN). Empty = same as API origin'
+        type: string
+        required: false
+        default: ''
+      platforms:
+        description: 'Comma-separated subset of: android, ios, macos, linux, windows. Empty = all'
+        type: string
+        required: false
+        default: ''
+      release_tag:
+        description: 'If set, attach artifacts to this GitHub Release tag (created if missing)'
+        type: string
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-all-${{ github.ref }}-${{ inputs.release_tag }}
+  cancel-in-progress: false
+
+env:
+  PYTHONUTF8: '1'
+
+jobs:
+  plan:
+    runs-on: ubuntu-24.04
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+      frontend: ${{ steps.plan.outputs.frontend }}
+      server: ${{ steps.plan.outputs.server }}
+    steps:
+      - id: plan
+        shell: bash
+        env:
+          REQUESTED: ${{ inputs.platforms }}
+          SERVER_ORIGIN: ${{ inputs.server_origin }}
+          FRONTEND_ORIGIN: ${{ inputs.frontend_origin }}
+          DEFAULT_ORIGIN: 'https://raft.clawsouls.cn'
+        run: |
+          python - <<'PY'
+          import json, os
+          known = ["android", "ios", "macos", "linux", "windows"]
+          requested = os.environ.get("REQUESTED", "").strip()
+          if requested:
+              want = [p.strip() for p in requested.split(",") if p.strip()]
+              unknown = [p for p in want if p not in known]
+              if unknown:
+                  raise SystemExit(f"unknown platforms: {', '.join(unknown)}")
+          else:
+              want = known
+          # On a push the dispatch inputs are unset; fall back to the baked default.
+          server = os.environ.get("SERVER_ORIGIN", "").strip() or os.environ["DEFAULT_ORIGIN"]
+          frontend = os.environ.get("FRONTEND_ORIGIN", "").strip() or server
+          with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
+              fh.write("matrix=" + json.dumps(want) + "\n")
+              fh.write("frontend=" + frontend + "\n")
+              fh.write("server=" + server + "\n")
+          PY
+
+  build:
+    needs: plan
+    name: ${{ matrix.platform }}
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    runs-on: ${{ (matrix.platform == 'macos' || matrix.platform == 'ios') && 'macos-14' || matrix.platform == 'windows' && 'windows-2022' || 'ubuntu-24.04' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Set up Flutter (repository-pinned version)
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version-file: .fvmrc
+          channel: stable
+          cache: true
+
+      # ---- Android ----------------------------------------------------------
+      - name: Set up Java for Android
+        if: matrix.platform == 'android'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        if: matrix.platform == 'android'
+        uses: android-actions/setup-android@v4
+        with:
+          cmdline-tools-version: '12266719'
+          packages: 'platform-tools'
+          log-accepted-android-sdk-licenses: 'false'
+
+      - name: Install Android SDK components
+        if: matrix.platform == 'android'
+        shell: bash
+        run: sdkmanager 'platforms;android-37.0' 'build-tools;37.0.0'
+
+      - name: Decode Android release keystore
+        if: matrix.platform == 'android'
+        shell: bash
+        env:
+          KS_B64: ${{ secrets.RAFT_ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -z "${KS_B64}" ]; then
+            echo "No RAFT_ANDROID_KEYSTORE_BASE64 secret; the APK will use the debug key."
+            exit 0
+          fi
+          echo "$KS_B64" | base64 -d > "$RUNNER_TEMP/release.jks"
+          chmod 600 "$RUNNER_TEMP/release.jks"
+          echo "RAFT_ANDROID_KEYSTORE_PATH=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
+          echo "RAFT_ANDROID_SIGNING_REQUIRED=true" >> "$GITHUB_ENV"
+
+      # ---- Linux ------------------------------------------------------------
+      - name: Install Linux build dependencies
+        if: matrix.platform == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev libsecret-1-dev libjsoncpp-dev libmpv2 libmpv-dev patchelf poppler-utils zstd
+          python tool/prepare-media-linux || true
+
+      # ---- Apple (macOS / iOS) ---------------------------------------------
+      - name: Select Ruby for CocoaPods
+        if: matrix.platform == 'macos' || matrix.platform == 'ios'
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+
+      - name: Install CocoaPods
+        if: matrix.platform == 'macos' || matrix.platform == 'ios'
+        run: gem install cocoapods --version 1.16.2 --no-document
+
+      - name: Import Apple signing certificate
+        if: matrix.platform == 'macos' || matrix.platform == 'ios'
+        shell: bash
+        env:
+          CERT_B64: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
+          CERT_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+        run: |
+          set -euo pipefail
+          if [ -z "${CERT_B64}" ]; then
+            echo "No APPLE_CERTIFICATE_BASE64 secret; Apple targets will build unsigned."
+            exit 0
+          fi
+          KEYCHAIN="$RUNNER_TEMP/app-signing.keychain-db"
+          KEYCHAIN_PW="$(openssl rand -hex 16)"
+          CERT_PATH="$RUNNER_TEMP/cert.p12"
+          echo "$CERT_B64" | base64 -d > "$CERT_PATH"
+          security create-keychain -p "$KEYCHAIN_PW" "$KEYCHAIN"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN"
+          security unlock-keychain -p "$KEYCHAIN_PW" "$KEYCHAIN"
+          security import "$CERT_PATH" -P "$CERT_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN"
+          security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PW" "$KEYCHAIN"
+          security list-keychain -d user -s "$KEYCHAIN" $(security list-keychains -d user | tr -d '"')
+
+      - name: Install provisioning profile (iOS)
+        if: matrix.platform == 'ios'
+        shell: bash
+        env:
+          PROFILE_B64: ${{ secrets.APPLE_PROVISIONING_PROFILE_BASE64 }}
+        run: |
+          set -euo pipefail
+          if [ -z "${PROFILE_B64}" ]; then
+            echo "No APPLE_PROVISIONING_PROFILE_BASE64 secret; skipping."
+            exit 0
+          fi
+          PP_DIR="$HOME/Library/MobileDevice/Provisioning Profiles"
+          mkdir -p "$PP_DIR"
+          echo "$PROFILE_B64" | base64 -d > "$PP_DIR/ci.mobileprovision"
+
+      # ---- common -----------------------------------------------------------
+      - name: Resolve dependencies
+        run: python tool/flutter pub get --enforce-lockfile
+
+      - name: Build
+        shell: bash
+        env:
+          SERVER_ORIGIN: ${{ needs.plan.outputs.server }}
+          FRONTEND_ORIGIN: ${{ needs.plan.outputs.frontend }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+        working-directory: apps/raft_flutter
+        run: |
+          set -euo pipefail
+          DEFINES=(
+            "--dart-define=RAFT_ORIGIN=${SERVER_ORIGIN}"
+            "--dart-define=RAFT_FRONTEND_ORIGIN=${FRONTEND_ORIGIN}"
+            "--dart-define=RAFT_DEPLOYMENT_ENV=production"
+          )
+          case "${{ matrix.platform }}" in
+            android) flutter build apk --release "${DEFINES[@]}" ;;
+            ios)
+              if [ -n "${APPLE_SIGNING_IDENTITY}" ]; then
+                flutter build ipa --release "${DEFINES[@]}" \
+                  --export-options-plist=ios/ExportOptions.plist 2>/dev/null || \
+                flutter build ipa --release "${DEFINES[@]}"
+              else
+                flutter build ios --release --no-codesign "${DEFINES[@]}"
+              fi
+              ;;
+            macos)
+              if [ -n "${APPLE_SIGNING_IDENTITY}" ]; then
+                flutter build macos --release "${DEFINES[@]}"
+              else
+                flutter build macos --release --no-codesign "${DEFINES[@]}" 2>/dev/null || \
+                flutter build macos --release "${DEFINES[@]}"
+              fi
+              ;;
+            linux)   flutter build linux --release "${DEFINES[@]}" ;;
+            windows) flutter build windows --release "${DEFINES[@]}" ;;
+          esac
+
+      - name: Collect artifacts
+        shell: bash
+        working-directory: apps/raft_flutter
+        run: |
+          set -euo pipefail
+          out="${GITHUB_WORKSPACE}/dist/${{ matrix.platform }}"
+          mkdir -p "$out"
+          case "${{ matrix.platform }}" in
+            android) cp -v build/app/outputs/flutter-apk/*.apk "$out/" ;;
+            ios)     [ -d build/ios/ipa ] && cp -v build/ios/ipa/*.ipa "$out/" || true
+                     [ -d build/ios/iphoneos ] && cp -Rv build/ios/iphoneos/*.app "$out/" 2>/dev/null || true ;;
+            macos)   cp -Rv build/macos/Build/Products/Release/*.app "$out/" ;;
+            linux)   cp -Rv build/linux/*/release/bundle "$out/" ;;
+            windows) cp -Rv build/windows/*/runner/Release "$out/" ;;
+          esac
+          ls -la "$out"
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: raft-flutter-${{ matrix.platform }}-${{ github.run_number }}
+          path: dist/${{ matrix.platform }}/
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Attach to release
+        if: ${{ inputs.release_tag != '' }}
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.release_tag }}
+          files: dist/${{ matrix.platform }}/**
+          fail_on_unmatched_files: false
