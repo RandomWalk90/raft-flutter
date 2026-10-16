@@ -1,0 +1,204 @@
+name: Build all platforms (self-hosted origin)
+
+# Fork-friendly build of this client for every platform, producing downloadable
+# artifacts. Unlike the official release pipeline (release.yml /
+# release-platform.yml -> tool/release.py), which pins the official API/Web
+# origins and refuses anything else, this workflow builds with a configurable
+# origin, so a forked/self-hosted server can be baked into the app.
+#
+# Note: the origin is a compile-time define (String.fromEnvironment), so the
+# built app defaults to the value given here; a person can still change it on
+# the sign-in screen, and that choice is stored and wins afterwards.
+
+on:
+  workflow_dispatch:
+    inputs:
+      server_origin:
+        description: 'API origin baked into the build (RAFT_ORIGIN)'
+        type: string
+        required: true
+        default: 'https://raft.clawsouls.cn'
+      frontend_origin:
+        description: 'Web origin baked into the build (RAFT_FRONTEND_ORIGIN). Empty = same as API origin'
+        type: string
+        required: false
+        default: ''
+      platforms:
+        description: 'Comma-separated subset of: android, ios, macos, linux, windows. Empty = all'
+        type: string
+        required: false
+        default: ''
+      upload_to_release:
+        description: 'Also attach artifacts to a GitHub Release (requires a tag or the "release_tag" input)'
+        type: boolean
+        required: false
+        default: false
+      release_tag:
+        description: 'Release tag to attach artifacts to when "upload_to_release" is on (e.g. v1.0.0-fork)'
+        type: string
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-all-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  PYTHONUTF8: '1'
+
+jobs:
+  plan:
+    runs-on: ubuntu-24.04
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+      frontend: ${{ steps.plan.outputs.frontend }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: plan
+        shell: bash
+        env:
+          REQUESTED: ${{ inputs.platforms }}
+          SERVER_ORIGIN: ${{ inputs.server_origin }}
+          FRONTEND_ORIGIN: ${{ inputs.frontend_origin }}
+        run: |
+          python - <<'PY'
+          import json, os
+          known = ["android", "ios", "macos", "linux", "windows"]
+          requested = os.environ.get("REQUESTED", "").strip()
+          if requested:
+              want = [p.strip() for p in requested.split(",") if p.strip()]
+              unknown = [p for p in want if p not in known]
+              if unknown:
+                  raise SystemExit(f"unknown platforms: {', '.join(unknown)}")
+          else:
+              want = known
+          frontend = os.environ.get("FRONTEND_ORIGIN", "").strip() or os.environ["SERVER_ORIGIN"].strip()
+          out = os.environ["GITHUB_OUTPUT"]
+          with open(out, "a") as fh:
+              fh.write("matrix=" + json.dumps(want) + "\n")
+              fh.write("frontend=" + frontend + "\n")
+          PY
+
+  build:
+    needs: plan
+    name: ${{ matrix.platform }}
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    runs-on: ${{ matrix.platform == 'macos' && 'macos-14' || matrix.platform == 'ios' && 'macos-14' || matrix.platform == 'windows' && 'windows-2022' || 'ubuntu-24.04' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Set up Flutter (repository-pinned version)
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version-file: .fvmrc
+          channel: stable
+          cache: true
+
+      # ---- Android ----------------------------------------------------------
+      - name: Set up Java for Android
+        if: matrix.platform == 'android'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        if: matrix.platform == 'android'
+        uses: android-actions/setup-android@v4
+        with:
+          cmdline-tools-version: '12266719'
+          packages: 'platform-tools'
+          log-accepted-android-sdk-licenses: 'false'
+
+      - name: Install Android SDK components
+        if: matrix.platform == 'android'
+        shell: bash
+        run: sdkmanager 'platforms;android-37.0' 'build-tools;37.0.0'
+
+      # ---- Linux ------------------------------------------------------------
+      - name: Install Linux build dependencies
+        if: matrix.platform == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev libsecret-1-dev libjsoncpp-dev libmpv2 libmpv-dev patchelf poppler-utils zstd
+          python tool/prepare-media-linux || true
+
+      # ---- macOS / iOS ------------------------------------------------------
+      - name: Select Ruby for CocoaPods
+        if: matrix.platform == 'macos' || matrix.platform == 'ios'
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+
+      - name: Install CocoaPods
+        if: matrix.platform == 'macos' || matrix.platform == 'ios'
+        run: gem install cocoapods --version 1.16.2 --no-document
+
+      # ---- common -----------------------------------------------------------
+      - name: Resolve dependencies
+        run: python tool/flutter pub get --enforce-lockfile
+
+      - name: Build
+        shell: bash
+        env:
+          SERVER_ORIGIN: ${{ inputs.server_origin }}
+          FRONTEND_ORIGIN: ${{ needs.plan.outputs.frontend }}
+        working-directory: apps/raft_flutter
+        run: |
+          set -euo pipefail
+          DEFINES=(
+            "--dart-define=RAFT_ORIGIN=${SERVER_ORIGIN}"
+            "--dart-define=RAFT_FRONTEND_ORIGIN=${FRONTEND_ORIGIN}"
+            "--dart-define=RAFT_DEPLOYMENT_ENV=production"
+          )
+          case "${{ matrix.platform }}" in
+            android) flutter build apk --release "${DEFINES[@]}" ;;
+            ios)     flutter build ipa --release --no-codesign "${DEFINES[@]}" ;;
+            macos)   flutter build macos --release "${DEFINES[@]}" ;;
+            linux)   flutter build linux --release "${DEFINES[@]}" ;;
+            windows) flutter build windows --release "${DEFINES[@]}" ;;
+          esac
+
+      - name: Collect artifacts
+        shell: bash
+        working-directory: apps/raft_flutter
+        run: |
+          set -euo pipefail
+          out="${GITHUB_WORKSPACE}/dist/${{ matrix.platform }}"
+          mkdir -p "$out"
+          case "${{ matrix.platform }}" in
+            android) cp -v build/app/outputs/flutter-apk/*.apk "$out/" ;;
+            ios)     cp -rv build/ios/iphoneos/*.app "$out/" 2>/dev/null || true
+                     cp -v build/ios/ipa/*.ipa "$out/" 2>/dev/null || true ;;
+            macos)   cp -rv build/macos/Build/Products/Release/*.app "$out/" ;;
+            linux)   cp -rv build/linux/*/release/bundle "$out/" ;;
+            windows) cp -rv build/windows/*/runner/Release "$out/" ;;
+          esac
+          ls -la "$out"
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: raft-flutter-${{ matrix.platform }}-${{ github.run_number }}
+          path: dist/${{ matrix.platform }}/
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Attach to release
+        if: ${{ inputs.upload_to_release && inputs.release_tag != '' }}
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.release_tag }}
+          files: dist/${{ matrix.platform }}/**
+          fail_on_unmatched_files: false
