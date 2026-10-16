@@ -198,20 +198,28 @@ jobs:
           security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PW" "$KEYCHAIN"
           security list-keychain -d user -s "$KEYCHAIN" $(security list-keychains -d user | tr -d '"')
 
-      - name: Install provisioning profile (iOS)
+      - name: Install provisioning profiles (iOS)
         if: matrix.platform == 'ios'
         shell: bash
         env:
-          PROFILE_B64: ${{ secrets.APPLE_PROVISIONING_PROFILE_BASE64 }}
+          PROFILE_APP: ${{ secrets.APPLE_PROVISIONING_PROFILE_BASE64 }}
+          PROFILE_SHARE: ${{ secrets.APPLE_PROVISIONING_PROFILE_SHARE_BASE64 }}
+          PROFILE_ACTION: ${{ secrets.APPLE_PROVISIONING_PROFILE_ACTION_BASE64 }}
         run: |
           set -euo pipefail
-          if [ -z "${PROFILE_B64}" ]; then
-            echo "No APPLE_PROVISIONING_PROFILE_BASE64 secret; skipping."
-            exit 0
-          fi
           PP_DIR="$HOME/Library/MobileDevice/Provisioning Profiles"
           mkdir -p "$PP_DIR"
-          echo "$PROFILE_B64" | base64 -d > "$PP_DIR/ci.mobileprovision"
+          installed=0
+          # One profile per bundle id (app + ShareExtension + ActionExtension).
+          # The names are arbitrary; Xcode matches by the profile's own content.
+          if [ -n "${PROFILE_APP}" ]; then echo "$PROFILE_APP" | base64 -d > "$PP_DIR/app.mobileprovision"; installed=$((installed+1)); fi
+          if [ -n "${PROFILE_SHARE}" ]; then echo "$PROFILE_SHARE" | base64 -d > "$PP_DIR/share.mobileprovision"; installed=$((installed+1)); fi
+          if [ -n "${PROFILE_ACTION}" ]; then echo "$PROFILE_ACTION" | base64 -d > "$PP_DIR/action.mobileprovision"; installed=$((installed+1)); fi
+          if [ "$installed" -eq 0 ]; then
+            echo "No provisioning profile secrets; skipping (build will be unsigned)."
+          else
+            echo "Installed $installed provisioning profile(s)."
+          fi
 
       # ---- common -----------------------------------------------------------
       - name: Generate checked-in-by-build sources
