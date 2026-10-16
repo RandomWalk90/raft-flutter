@@ -233,6 +233,7 @@ jobs:
           FRONTEND_ORIGIN: ${{ needs.plan.outputs.frontend }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         working-directory: apps/raft_flutter
         run: |
           set -euo pipefail
@@ -245,9 +246,19 @@ jobs:
             android) flutter build apk --release "${DEFINES[@]}" ;;
             ios)
               if [ -n "${APPLE_SIGNING_IDENTITY}" ]; then
-                flutter build ipa --release "${DEFINES[@]}" \
-                  --export-options-plist=ios/ExportOptions.plist 2>/dev/null || \
-                flutter build ipa --release "${DEFINES[@]}"
+                # App Store export so the .ipa is ready for TestFlight upload.
+                cat > ios/ExportOptions.ci.plist <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>teamID</key><string>${APPLE_TEAM_ID}</string>
+            <key>signingStyle</key><string>manual</string>
+            <key>uploadSymbols</key><true/>
+            <key>stripSwiftSymbols</key><true/>
+          </dict></plist>
+          PLIST
+                flutter build ipa --release "${DEFINES[@]}" --export-options-plist=ios/ExportOptions.ci.plist
               else
                 flutter build ios --release --no-codesign "${DEFINES[@]}"
               fi
@@ -288,6 +299,36 @@ jobs:
           path: dist/${{ matrix.platform }}/
           if-no-files-found: error
           retention-days: 30
+
+      - name: Upload to TestFlight
+        # Runs only for a signed iOS build with an App Store Connect API key.
+        if: matrix.platform == 'ios'
+        shell: bash
+        working-directory: apps/raft_flutter
+        env:
+          ASC_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.APPLE_ISSUER_ID }}
+          ASC_KEY_B64: ${{ secrets.APPLE_API_KEY_BASE64 }}
+        run: |
+          set -euo pipefail
+          ipa=$(ls build/ios/ipa/*.ipa 2>/dev/null | head -1 || true)
+          if [ -z "$ipa" ]; then
+            echo "No signed .ipa (unsigned build or missing signing secrets); skipping TestFlight."
+            exit 0
+          fi
+          if [ -z "${ASC_KEY_ID}" ] || [ -z "${ASC_ISSUER_ID}" ] || [ -z "${ASC_KEY_B64}" ]; then
+            echo "No App Store Connect API key secrets; skipping TestFlight upload."
+            exit 0
+          fi
+          key_dir="$RUNNER_TEMP/asc"; mkdir -p "$key_dir"
+          key_path="$key_dir/AuthKey_${ASC_KEY_ID}.p8"
+          echo "$ASC_KEY_B64" | base64 -d > "$key_path"
+          echo "Uploading $ipa to TestFlight..."
+          xcrun altool --upload-app -f "$ipa" -t ios \
+            --apiKey "$ASC_KEY_ID" --apiIssuer "$ASC_ISSUER_ID" \
+            --p8-file-path "$key_path" || \
+          xcrun altool --upload-app -f "$ipa" -t ios \
+            --api-key "$ASC_KEY_ID" --api-issuer "$ASC_ISSUER_ID"
 
       - name: Attach to release
         if: ${{ inputs.release_tag != '' }}
