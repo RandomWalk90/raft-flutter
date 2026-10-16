@@ -98,7 +98,7 @@ jobs:
       fail-fast: false
       matrix:
         platform: ${{ fromJSON(needs.plan.outputs.matrix) }}
-    runs-on: ${{ (matrix.platform == 'macos' || matrix.platform == 'ios') && 'macos-14' || matrix.platform == 'windows' && 'windows-2022' || 'ubuntu-24.04' }}
+    runs-on: ${{ (matrix.platform == 'macos' || matrix.platform == 'ios') && 'macos-15' || matrix.platform == 'windows' && 'windows-2022' || matrix.platform == 'linux' && 'ubuntu-26.04' || 'ubuntu-24.04' }}
     steps:
       - uses: actions/checkout@v4
 
