@@ -18,9 +18,9 @@
         <!-- Vendor plugin may toggle only these launcher aliases. MainActivity
              stays enabled for all external intents. -->
         <meta-data android:name="flutter_dynamic_icon_plus.default_alias"
-            android:value="app.raft.raft_flutter.IconYellow" />
+            android:value="cn.clawsouls.ficusvirens.IconYellow" />
         <meta-data android:name="flutter_dynamic_icon_plus.allowed_aliases"
-            android:value="app.raft.raft_flutter.IconYellow,app.raft.raft_flutter.IconBlue,app.raft.raft_flutter.IconGreen,app.raft.raft_flutter.IconWhite,app.raft.raft_flutter.IconPink" />
+            android:value="cn.clawsouls.ficusvirens.IconYellow,cn.clawsouls.ficusvirens.IconBlue,cn.clawsouls.ficusvirens.IconGreen,cn.clawsouls.ficusvirens.IconWhite,cn.clawsouls.ficusvirens.IconPink" />
         <activity
             android:name=".MainActivity"
             android:exported="true"

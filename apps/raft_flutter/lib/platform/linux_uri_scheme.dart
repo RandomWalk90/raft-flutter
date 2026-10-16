@@ -91,7 +91,7 @@ class LinuxSchemeStore {
 ///
 /// An AppImage installs nothing, so `xdg-open raft://...` cannot find it. On
 /// start (and when the member asks) this writes
-/// `~/.local/share/applications/app.raft.raft_flutter-appimage.desktop` with
+/// `~/.local/share/applications/cn.clawsouls.ficusvirens-appimage.desktop` with
 /// the current image path, installs the icon, and makes it the default for
 /// `x-scheme-handler/raft` with `xdg-mime`. It only takes over when no handler
 /// is set or the handler is already this launcher (any image path); another

@@ -153,7 +153,7 @@ void main() {
     final (service, plugin) = await _service(
       details: () => linuxMessageNotificationDetails(
         iconPath: '/opt/raft/data/icons/raft.png',
-        desktopEntry: 'app.raft.raft_flutter',
+        desktopEntry: 'cn.clawsouls.ficusvirens',
       ),
     );
     await service.show(
@@ -170,7 +170,7 @@ void main() {
     expect(linux.urgency, LinuxNotificationUrgency.normal);
     final hint = linux.customHints!.single;
     expect(hint.name, 'desktop-entry');
-    expect(hint.value.value, 'app.raft.raft_flutter');
+    expect(hint.value.value, 'cn.clawsouls.ficusvirens');
     // The test notification uses the same presentation.
     expect(await service.test(), isTrue);
     expect(
@@ -218,7 +218,7 @@ void main() {
       );
       expect(
         bundled({'HOME': '/home/a'}),
-        '/opt/raft/data/icons/hicolor/256x256/apps/app.raft.raft_flutter.png',
+        '/opt/raft/data/icons/hicolor/256x256/apps/cn.clawsouls.ficusvirens.png',
       );
       expect(
         linuxAppIconPath(

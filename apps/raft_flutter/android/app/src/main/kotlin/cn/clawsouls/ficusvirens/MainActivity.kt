@@ -1,4 +1,4 @@
-package app.raft.raft_flutter
+package cn.clawsouls.ficusvirens
 
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine

@@ -12,7 +12,7 @@
 // tap the channel.
 //
 // Android: `adb reverse tcp:8791 tcp:8791` and VP_MOBILE=true; the isolated
-// package is `app.raft.raft_flutter.linkperf` (see attachment_progress_main).
+// package is `cn.clawsouls.ficusvirens.linkperf` (see attachment_progress_main).
 import 'package:flutter/material.dart';
 import 'package:raft_flutter/platform/android_performance_hint.dart';
 

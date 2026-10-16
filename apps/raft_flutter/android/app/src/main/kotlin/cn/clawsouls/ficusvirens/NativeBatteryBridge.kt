@@ -1,4 +1,4 @@
-package app.raft.raft_flutter
+package cn.clawsouls.ficusvirens
 
 import android.content.Context
 import android.content.Intent

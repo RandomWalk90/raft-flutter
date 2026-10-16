@@ -6,7 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'content_target.dart';
 
-const backgroundInboxTask = 'app.raft.raft_flutter.inbox_refresh';
+const backgroundInboxTask = 'cn.clawsouls.ficusvirens.inbox_refresh';
 const backgroundScopeKey = 'raft.background.inbox.scope';
 
 String notificationScope(RaftClient client) =>

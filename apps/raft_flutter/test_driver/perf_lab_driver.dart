@@ -598,8 +598,8 @@ Future<String?> _androidPackage(String serial, int pid) async {
   final preferred = Platform.environment['RAFT_LAB_APP_ID'];
   final names = <String>[
     if (preferred != null && preferred.isNotEmpty) preferred,
-    'app.raft.raft_flutter.linkperf',
-    'app.raft.raft_flutter',
+    'cn.clawsouls.ficusvirens.linkperf',
+    'cn.clawsouls.ficusvirens',
   ];
   for (final name in names.toSet()) {
     // pidof exits 1 when the package is not running. That is not a read failure.
