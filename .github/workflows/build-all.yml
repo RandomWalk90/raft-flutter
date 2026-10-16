@@ -161,7 +161,8 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev libsecret-1-dev libjsoncpp-dev libmpv2 libmpv-dev patchelf poppler-utils zstd
-          python tool/prepare-media-linux || true
+          # The Linux bundle needs a host-matched media runtime (pinned .deb set).
+          python tool/prepare-media-linux
 
       # ---- Apple (macOS / iOS) ---------------------------------------------
       - name: Select Ruby for CocoaPods
@@ -214,7 +215,9 @@ jobs:
 
       # ---- common -----------------------------------------------------------
       - name: Resolve dependencies
-        run: python tool/flutter pub get --enforce-lockfile
+        # Use the Flutter action's SDK directly. tool/flutter only searches
+        # .fvm / ~/flutter-sdks / ~/fvm and mis-verifies the .BAT on Windows.
+        run: flutter pub get
 
       - name: Build
         shell: bash
