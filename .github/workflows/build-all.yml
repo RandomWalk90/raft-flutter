@@ -114,6 +114,11 @@ jobs:
           channel: stable
           cache: true
 
+      - name: Select the pinned SDK wrapper
+        # tool/flutter only looks in .fvm / ~/flutter-sdks / ~/fvm; point it at
+        # the SDK this action installed on PATH.
+        run: python tool/release.py sdk
+
       # ---- Android ----------------------------------------------------------
       - name: Set up Java for Android
         if: matrix.platform == 'android'
