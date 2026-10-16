@@ -102,7 +102,7 @@ class _AuthState extends State<AuthView> {
   bool forgotSent = false, resetDone = false;
   String sentEmail = '';
   // ignore: raft_lints/avoid_imperative_notice_state -- Each clears when its field is edited, on submit revalidation and on mode switch.
-  String? emailError, passwordError, confirmError, tokenError;
+  String? serverError, emailError, passwordError, confirmError, tokenError;
   List<Map<String, dynamic>> providers = [];
   NativeOAuthBroker? broker;
   Timer? providerDebounce;
@@ -351,6 +351,7 @@ class _AuthState extends State<AuthView> {
       error = null;
       notice = null;
       emailError = passwordError = confirmError = tokenError = null;
+      serverError = null;
       forgotSent = false;
       resetDone = false;
       password.clear();
@@ -397,6 +398,7 @@ class _AuthState extends State<AuthView> {
       base.text = next!;
       providers = [];
       error = null;
+      serverError = null;
     });
     providerRequest++;
     providerDebounce?.cancel();
@@ -406,7 +408,12 @@ class _AuthState extends State<AuthView> {
   Future<void> submitChecked() async {
     final originError = authOriginError(base.text);
     if (originError != null) {
-      setState(() => error = originError);
+      // Native now shows the origin inline as its own field, so surface the
+      // problem there instead of only in the banner above the form.
+      setState(() {
+        serverError = originError;
+        error = null;
+      });
       return;
     }
     await submit();
@@ -459,10 +466,32 @@ class _AuthState extends State<AuthView> {
         onServer: busy ? null : editServer,
         banner: error == null ? widget.bootError : tr(error!),
         notice: notice,
+        serverError: serverError == null ? null : tr(serverError!),
         emailError: emailError == null ? null : tr(emailError!),
         tokenError: tokenError == null ? null : tr(tokenError!),
         passwordError: passwordError == null ? null : tr(passwordError!),
         confirmError: confirmError == null ? null : tr(confirmError!),
+        serverField: (mode == 'login' || mode == 'register')
+            ? RaftTextInput(
+                key: const Key('login-server-field'),
+                controller: base,
+                keyboardType: TextInputType.url,
+                invalid: serverError != null,
+                semanticLabel: tr('Server URL'),
+                onChanged: (value) {
+                  setState(() {
+                    if (serverError != null) serverError = null;
+                    providers = [];
+                  });
+                  providerRequest++;
+                  providerDebounce?.cancel();
+                  providerDebounce = Timer(
+                    const Duration(milliseconds: 400),
+                    () => loadProviders(requestPermission: true),
+                  );
+                },
+              )
+            : null,
         emailField: mode == 'reset'
             ? null
             : RaftTextInput(
