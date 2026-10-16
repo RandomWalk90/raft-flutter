@@ -214,10 +214,17 @@ jobs:
           echo "$PROFILE_B64" | base64 -d > "$PP_DIR/ci.mobileprovision"
 
       # ---- common -----------------------------------------------------------
+      - name: Generate checked-in-by-build sources
+        # zh_index.g.dart and the parity case map are git-ignored and normally
+        # produced by tool/flutter; generate them here so the build sees them.
+        run: |
+          python tool/gen_l10n_index.py
+          python tool/parity_case_map.py
+
       - name: Resolve dependencies
         # Use the Flutter action's SDK directly. tool/flutter only searches
         # .fvm / ~/flutter-sdks / ~/fvm and mis-verifies the .BAT on Windows.
-        run: flutter pub get
+        run: flutter pub get --enforce-lockfile
 
       - name: Build
         shell: bash
