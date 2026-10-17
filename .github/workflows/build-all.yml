@@ -15,7 +15,8 @@ name: Build all platforms (self-hosted origin)
 #   Android: RAFT_ANDROID_KEYSTORE_BASE64, RAFT_ANDROID_STORE_PASSWORD,
 #            RAFT_ANDROID_KEY_PASSWORD, RAFT_ANDROID_KEY_ALIAS
 #   Apple:   APPLE_CERTIFICATE_BASE64, APPLE_CERTIFICATE_PASSWORD,
-#            APPLE_PROVISIONING_PROFILE_BASE64, APPLE_TEAM_ID, APPLE_SIGNING_IDENTITY
+#            APPLE_PROVISIONING_PROFILE_BASE64, APPLE_TEAM_ID (the signing identity
+#            is read from the imported certificate)
 # Without secrets the builds still run: Android falls back to a debug-signed APK
 # and Apple targets build unsigned (--no-codesign).
 
@@ -197,6 +198,15 @@ jobs:
           security import "$CERT_PATH" -P "$CERT_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN"
           security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PW" "$KEYCHAIN"
           security list-keychain -d user -s "$KEYCHAIN" $(security list-keychains -d user | tr -d '"')
+          # Publish the imported identity so the build can sign even when no
+          # APPLE_SIGNING_IDENTITY secret is provided (the p12 already names it).
+          IDENTITY="$(security find-identity -v -p codesigning "$KEYCHAIN" | sed -n 's/.*"\(.*\)"/\1/p' | head -1)"
+          if [ -n "$IDENTITY" ]; then
+            echo "Using signing identity: $IDENTITY"
+            echo "APPLE_SIGNING_IDENTITY=$IDENTITY" >> "$GITHUB_ENV"
+          else
+            echo "No codesigning identity found in the imported certificate; Apple targets will build unsigned."
+          fi
 
       - name: Install provisioning profiles (iOS)
         if: matrix.platform == 'ios'
@@ -240,7 +250,9 @@ jobs:
           SERVER_ORIGIN: ${{ needs.plan.outputs.server }}
           FRONTEND_ORIGIN: ${{ needs.plan.outputs.frontend }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          # Do NOT set APPLE_SIGNING_IDENTITY from a secret here: the certificate
+          # import step exports the identity it finds. A step-level env value
+          # would override that and blank it out when the secret is unset.
         working-directory: apps/raft_flutter
         run: |
           set -euo pipefail
