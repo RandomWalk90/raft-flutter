@@ -8,6 +8,12 @@
 	</array>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
+	<!-- Export compliance: the app only uses HTTPS/TLS (Apple OS encryption) and
+	     does not implement non-exempt cryptography, so App Store Connect needs no
+	     export documentation. Without this key every build shows "Missing
+	     Compliance" until answered by hand. -->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
