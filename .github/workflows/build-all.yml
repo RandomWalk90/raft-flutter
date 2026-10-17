@@ -239,6 +239,29 @@ jobs:
           python tool/gen_l10n_index.py
           python tool/parity_case_map.py
 
+      - name: Point the Xcode project at the CI distribution identity
+        # The project pins CODE_SIGN_IDENTITY=iPhone Developer with automatic
+        # signing, which CI cannot satisfy (it only holds the Apple Distribution
+        # certificate). Rewrite the setting for this runner only; the repository
+        # keeps its committed value.
+        if: matrix.platform == 'ios'
+        shell: bash
+        working-directory: apps/raft_flutter
+        env:
+          TEAM: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          set -euo pipefail
+          # APPLE_SIGNING_IDENTITY was exported by the certificate import step
+          # into the job environment; read it from there.
+          IDENTITY="${APPLE_SIGNING_IDENTITY:-}"
+          if [ -z "$IDENTITY" ]; then echo "No identity; leaving project untouched."; exit 0; fi
+          pbx=ios/Runner.xcodeproj/project.pbxproj
+          sed -i '' -E \
+            -e 's|CODE_SIGN_STYLE = Automatic;|CODE_SIGN_STYLE = Manual;|g' \
+            -e "s|\"CODE_SIGN_IDENTITY\[sdk=iphoneos\*\]\" = \"iPhone Developer\";|\"CODE_SIGN_IDENTITY[sdk=iphoneos*]\" = \"${IDENTITY}\";|g" \
+            -e "s|DEVELOPMENT_TEAM = [^;]*;|DEVELOPMENT_TEAM = ${TEAM};|g" "$pbx" || true
+          grep -c 'CODE_SIGN_STYLE = Manual' "$pbx" || true
+
       - name: Resolve dependencies
         # Use the Flutter action's SDK directly. tool/flutter only searches
         # .fvm / ~/flutter-sdks / ~/fvm and mis-verifies the .BAT on Windows.
@@ -281,10 +304,7 @@ jobs:
           </dict></plist>
           PLIST
                 flutter build ipa --release "${DEFINES[@]}" \
-                  --export-options-plist=ios/ExportOptions.ci.plist \
-                  -- "CODE_SIGN_IDENTITY=${APPLE_SIGNING_IDENTITY}" \
-                     "CODE_SIGN_STYLE=Manual" "DEVELOPMENT_TEAM=${APPLE_TEAM_ID}" \
-                     "PROVISIONING_PROFILE_SPECIFIER="
+                  --export-options-plist=ios/ExportOptions.ci.plist
               else
                 flutter build ios --release --no-codesign "${DEFINES[@]}"
               fi
