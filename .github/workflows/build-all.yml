@@ -266,6 +266,9 @@ jobs:
             ios)
               if [ -n "${APPLE_SIGNING_IDENTITY}" ]; then
                 # App Store export so the .ipa is ready for TestFlight upload.
+                # The project pins CODE_SIGN_IDENTITY=iPhone Developer, but CI only
+                # has the distribution certificate, so force the identity and
+                # supply the team for a manual, distribution-signed archive.
                 cat > ios/ExportOptions.ci.plist <<PLIST
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -277,7 +280,11 @@ jobs:
             <key>stripSwiftSymbols</key><true/>
           </dict></plist>
           PLIST
-                flutter build ipa --release "${DEFINES[@]}" --export-options-plist=ios/ExportOptions.ci.plist
+                flutter build ipa --release "${DEFINES[@]}" \
+                  --export-options-plist=ios/ExportOptions.ci.plist \
+                  -- "CODE_SIGN_IDENTITY=${APPLE_SIGNING_IDENTITY}" \
+                     "CODE_SIGN_STYLE=Manual" "DEVELOPMENT_TEAM=${APPLE_TEAM_ID}" \
+                     "PROVISIONING_PROFILE_SPECIFIER="
               else
                 flutter build ios --release --no-codesign "${DEFINES[@]}"
               fi
