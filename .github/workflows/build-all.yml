@@ -265,9 +265,20 @@ jobs:
             android) flutter build apk --release "${DEFINES[@]}" ;;
             ios)
               if [ -n "${APPLE_SIGNING_IDENTITY}" ]; then
-                # Distribution signing needs archive -> exportArchive; `flutter
-                # build ipa` first builds for device and demands a development
+                # Distribution signing: build Flutter artifacts unsigned, then
+                # archive with the manual distribution identity and export with
+                # per-bundle-id profile mappings. `flutter build ipa` cannot be
+                # used here: it builds for device first and demands a development
                 # certificate this runner does not have.
+                PP_DIR="$HOME/Library/MobileDevice/Provisioning Profiles"
+                profile_uuid() {
+                  security cms -D -i "$1" > "$RUNNER_TEMP/profile.plist" 2>/dev/null || return 1
+                  /usr/libexec/PlistBuddy -c 'Print :UUID' "$RUNNER_TEMP/profile.plist" 2>/dev/null
+                }
+                APP_UUID="$(profile_uuid "$PP_DIR/app.mobileprovision" || true)"
+                SHARE_UUID="$(profile_uuid "$PP_DIR/share.mobileprovision" || true)"
+                ACTION_UUID="$(profile_uuid "$PP_DIR/action.mobileprovision" || true)"
+                echo "profiles: app=$APP_UUID share=$SHARE_UUID action=$ACTION_UUID"
                 cat > ios/ExportOptions.ci.plist <<PLIST
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -277,6 +288,12 @@ jobs:
             <key>signingStyle</key><string>manual</string>
             <key>uploadSymbols</key><true/>
             <key>stripSwiftSymbols</key><true/>
+            <key>provisioningProfiles</key>
+            <dict>
+              <key>cn.clawsouls.ficusvirens</key><string>${APP_UUID}</string>
+              <key>cn.clawsouls.ficusvirens.ShareExtension</key><string>${SHARE_UUID}</string>
+              <key>cn.clawsouls.ficusvirens.ActionExtension</key><string>${ACTION_UUID}</string>
+            </dict>
           </dict></plist>
           PLIST
                 flutter build ios --release --no-codesign "${DEFINES[@]}"
@@ -287,7 +304,6 @@ jobs:
                   CODE_SIGN_STYLE=Manual \
                   CODE_SIGN_IDENTITY="${APPLE_SIGNING_IDENTITY}" \
                   DEVELOPMENT_TEAM="${APPLE_TEAM_ID}" \
-                  PROVISIONING_PROFILE_SPECIFIER="" \
                   -allowProvisioningUpdates
                 mkdir -p build/ios/ipa
                 xcodebuild -exportArchive -archivePath "$archive" \
