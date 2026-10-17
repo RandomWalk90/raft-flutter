@@ -1,7 +1,7 @@
 <resources>
-    <color name="raft_icon_yellow">#FFD440</color>
-    <color name="raft_icon_blue">#27CCF3</color>
-    <color name="raft_icon_green">#A9D877</color>
+    <color name="raft_icon_yellow">#CFE9DF</color>
+    <color name="raft_icon_blue">#7FC9B2</color>
+    <color name="raft_icon_green">#BFE6D6</color>
     <color name="raft_icon_white">#FFFFFF</color>
-    <color name="raft_icon_pink">#FE7DA8</color>
+    <color name="raft_icon_pink">#A7D9C7</color>
 </resources>
