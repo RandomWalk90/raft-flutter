@@ -11,9 +11,9 @@ class WindowsNotifications {
 
   final MethodChannel channel;
   final bool lab;
-  static const appId = 'app.raft.raft_flutter';
+  static const appId = 'cn.clawsouls.ficusvirens';
   static const activationGuid = 'b951813c-37ff-5d5c-95ac-f9573572c87c';
-  static const labAppId = 'app.raft.raft_flutter.notificationlab';
+  static const labAppId = 'cn.clawsouls.ficusvirens.notificationlab';
   static const labActivationGuid = 'c7f8c268-2e7c-5079-9305-1a7294c70d9d';
   void Function(String)? onTap;
 

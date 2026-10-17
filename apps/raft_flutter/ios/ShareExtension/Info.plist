@@ -50,6 +50,6 @@
 		</dict>
 	</dict>
 	<key>RaftShareKeychainGroup</key>
-	<string>$(AppIdentifierPrefix)app.raft.raftFlutter.shareSession</string>
+	<string>$(AppIdentifierPrefix)cn.clawsouls.ficusvirens.shareSession</string>
 </dict>
 </plist>

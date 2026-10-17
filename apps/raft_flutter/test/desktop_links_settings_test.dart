@@ -54,7 +54,7 @@ void main() {
       }
       // A removed launcher is no longer a handler, as on a real desktop.
       final gone =
-          handler.startsWith('app.raft') &&
+          handler.startsWith('cn.clawsouls.ficusvirens') &&
           !File(
             p.join(root.path, 'data', 'applications', handler),
           ).existsSync();
@@ -130,6 +130,6 @@ void main() {
     );
     await t.pump();
     expect(on(t), isTrue);
-    expect(handler, 'app.raft.raft_flutter-appimage.desktop');
+    expect(handler, 'cn.clawsouls.ficusvirens-appimage.desktop');
   });
 }

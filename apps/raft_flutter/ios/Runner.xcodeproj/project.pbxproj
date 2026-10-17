@@ -26,6 +26,7 @@
 		7884E8682EC3CC0700C636F2 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7884E8672EC3CC0400C636F2 /* SceneDelegate.swift */; };
 		78A318202AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage in Frameworks */ = {isa = PBXBuildFile; productRef = 78A3181F2AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage */; };
 		841B3213F3DE2D5098BC87E3 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 06BF7ACDD15E71875C72815E /* InfoPlist.strings */; };
+		AA11BB22CC33DD44EE55FF01 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = AA11BB22CC33DD44EE55FF03 /* InfoPlist.strings */; };
 		88222CC4B773C0CC573662CF /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 954CA5E6EE7A4F80846CEAE7 /* InfoPlist.strings */; };
 		89BBFD497C3828E2AB0E26A0 /* ShareSessionVault.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69361A46634503C5F2812C2F /* ShareSessionVault.swift */; };
 		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
@@ -94,6 +95,7 @@
 		1498D2321E8E86230040F4C2 /* GeneratedPluginRegistrant.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GeneratedPluginRegistrant.h; sourceTree = "<group>"; };
 		1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GeneratedPluginRegistrant.m; sourceTree = "<group>"; };
 		16481D0D622F9141DECC7D1A /* zh-Hans */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/InfoPlist.strings"; sourceTree = "<group>"; };
+		AA11BB22CC33DD44EE55FF02 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/InfoPlist.strings"; sourceTree = "<group>"; };
 		22732F454B7BCCE179873502 /* ActionExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ActionExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		23321E661F499B95D6564987 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		29AB3A8FF097C36DF0A28D7A /* ShareComposeClient.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ShareComposeClient.swift; sourceTree = "<group>"; };
@@ -252,6 +254,7 @@
 		97C146F01CF9000F007C117D /* Runner */ = {
 			isa = PBXGroup;
 			children = (
+				AA11BB22CC33DD44EE55FF03 /* InfoPlist.strings */,
 				97C146FA1CF9000F007C117D /* Main.storyboard */,
 				97C146FD1CF9000F007C117D /* Assets.xcassets */,
 				97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */,
@@ -416,6 +419,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AA11BB22CC33DD44EE55FF01 /* InfoPlist.strings in Resources */,
 				97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */,
 				3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */,
 				97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */,
@@ -589,6 +593,14 @@
 			name = LaunchScreen.storyboard;
 			sourceTree = "<group>";
 		};
+		AA11BB22CC33DD44EE55FF03 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				AA11BB22CC33DD44EE55FF02 /* zh-Hans */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
@@ -660,9 +672,9 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = app.raft.raftFlutter;
+				PRODUCT_BUNDLE_IDENTIFIER = cn.clawsouls.ficusvirens;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				RAFT_APP_GROUP = group.app.raft.raftFlutter;
+				RAFT_APP_GROUP = group.cn.clawsouls.ficusvirens;
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
@@ -677,7 +689,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = app.raft.raftFlutter.RunnerTests;
+				PRODUCT_BUNDLE_IDENTIFIER = cn.clawsouls.ficusvirens.RunnerTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -694,7 +706,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = app.raft.raftFlutter.RunnerTests;
+				PRODUCT_BUNDLE_IDENTIFIER = cn.clawsouls.ficusvirens.RunnerTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Runner.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Runner";
@@ -709,7 +721,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = app.raft.raftFlutter.RunnerTests;
+				PRODUCT_BUNDLE_IDENTIFIER = cn.clawsouls.ficusvirens.RunnerTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Runner.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Runner";
@@ -729,9 +741,9 @@
 				INFOPLIST_FILE = ActionExtension/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = "$(FLUTTER_BUILD_NAME)";
-				PRODUCT_BUNDLE_IDENTIFIER = app.raft.raftFlutter.ActionExtension;
+				PRODUCT_BUNDLE_IDENTIFIER = cn.clawsouls.ficusvirens.ActionExtension;
 				PRODUCT_NAME = ActionExtension;
-				RAFT_APP_GROUP = group.app.raft.raftFlutter;
+				RAFT_APP_GROUP = group.cn.clawsouls.ficusvirens;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
 				SWIFT_VERSION = 5.0;
@@ -868,9 +880,9 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = app.raft.raftFlutter;
+				PRODUCT_BUNDLE_IDENTIFIER = cn.clawsouls.ficusvirens;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				RAFT_APP_GROUP = group.app.raft.raftFlutter;
+				RAFT_APP_GROUP = group.cn.clawsouls.ficusvirens;
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -893,9 +905,9 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = app.raft.raftFlutter;
+				PRODUCT_BUNDLE_IDENTIFIER = cn.clawsouls.ficusvirens;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				RAFT_APP_GROUP = group.app.raft.raftFlutter;
+				RAFT_APP_GROUP = group.cn.clawsouls.ficusvirens;
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
@@ -915,9 +927,9 @@
 				INFOPLIST_FILE = ShareExtension/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = "$(FLUTTER_BUILD_NAME)";
-				PRODUCT_BUNDLE_IDENTIFIER = app.raft.raftFlutter.ShareExtension;
+				PRODUCT_BUNDLE_IDENTIFIER = cn.clawsouls.ficusvirens.ShareExtension;
 				PRODUCT_NAME = ShareExtension;
-				RAFT_APP_GROUP = group.app.raft.raftFlutter;
+				RAFT_APP_GROUP = group.cn.clawsouls.ficusvirens;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
 				SWIFT_VERSION = 5.0;
@@ -938,9 +950,9 @@
 				INFOPLIST_FILE = ActionExtension/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = "$(FLUTTER_BUILD_NAME)";
-				PRODUCT_BUNDLE_IDENTIFIER = app.raft.raftFlutter.ActionExtension;
+				PRODUCT_BUNDLE_IDENTIFIER = cn.clawsouls.ficusvirens.ActionExtension;
 				PRODUCT_NAME = ActionExtension;
-				RAFT_APP_GROUP = group.app.raft.raftFlutter;
+				RAFT_APP_GROUP = group.cn.clawsouls.ficusvirens;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
 				SWIFT_VERSION = 5.0;
@@ -961,9 +973,9 @@
 				INFOPLIST_FILE = ActionExtension/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = "$(FLUTTER_BUILD_NAME)";
-				PRODUCT_BUNDLE_IDENTIFIER = app.raft.raftFlutter.ActionExtension;
+				PRODUCT_BUNDLE_IDENTIFIER = cn.clawsouls.ficusvirens.ActionExtension;
 				PRODUCT_NAME = ActionExtension;
-				RAFT_APP_GROUP = group.app.raft.raftFlutter;
+				RAFT_APP_GROUP = group.cn.clawsouls.ficusvirens;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
 				SWIFT_VERSION = 5.0;
@@ -985,9 +997,9 @@
 				INFOPLIST_FILE = ShareExtension/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = "$(FLUTTER_BUILD_NAME)";
-				PRODUCT_BUNDLE_IDENTIFIER = app.raft.raftFlutter.ShareExtension;
+				PRODUCT_BUNDLE_IDENTIFIER = cn.clawsouls.ficusvirens.ShareExtension;
 				PRODUCT_NAME = ShareExtension;
-				RAFT_APP_GROUP = group.app.raft.raftFlutter;
+				RAFT_APP_GROUP = group.cn.clawsouls.ficusvirens;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
 				SWIFT_VERSION = 5.0;
@@ -1009,9 +1021,9 @@
 				INFOPLIST_FILE = ShareExtension/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = "$(FLUTTER_BUILD_NAME)";
-				PRODUCT_BUNDLE_IDENTIFIER = app.raft.raftFlutter.ShareExtension;
+				PRODUCT_BUNDLE_IDENTIFIER = cn.clawsouls.ficusvirens.ShareExtension;
 				PRODUCT_NAME = ShareExtension;
-				RAFT_APP_GROUP = group.app.raft.raftFlutter;
+				RAFT_APP_GROUP = group.cn.clawsouls.ficusvirens;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
 				SWIFT_VERSION = 5.0;

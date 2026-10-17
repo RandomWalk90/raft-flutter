@@ -21,7 +21,7 @@ const linuxApplicationIdSuffix = String.fromEnvironment(
 const linuxIsolatedBuild = linuxApplicationIdSuffix != '';
 
 /// GApplication / window app id of the Linux runner (linux/CMakeLists.txt).
-const linuxApplicationId = 'app.raft.raft_flutter$linuxApplicationIdSuffix';
+const linuxApplicationId = 'cn.clawsouls.ficusvirens$linuxApplicationIdSuffix';
 
 /// Desktop file the AppImage registers in the member's own applications
 /// directory. Its id differs from the packaged launcher so both can coexist.

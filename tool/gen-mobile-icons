@@ -17,6 +17,18 @@ ASSETS = APP / 'ios/Runner/Assets.xcassets'
 A = '{http://schemas.android.com/apk/res/android}'
 PALETTE = [('yellow', 'brutalYellow'), ('blue', 'brutalCyan'),
            ('green', 'brutalLime'), ('white', 'codeSurface'), ('pink', 'brutalPink')]
+# Launcher-icon background overrides for this fork's Ficus virens brand.
+# The app's design tokens stay pinned to the Web oracle (design_tokens_test compares
+# them byte-for-byte), so the icon palette is themed here instead: a light green
+# ladder that keeps the dark mark readable, matching the original palettes' contract
+# (light background + dark mark). Remove an entry to fall back to its theme token.
+ICON_BACKGROUND_OVERRIDES = {
+    'yellow': 'CFE9DF',  # pale mint
+    'blue': '7FC9B2',    # mid mint
+    'green': 'BFE6D6',   # very light mint
+    'white': None,       # keep the theme's code surface
+    'pink': 'A7D9C7',    # soft green
+}
 SPLASH_ICON = '@mipmap/ic_launcher_{name}'  # adaptive icon: the system masks it like the launcher
 TILE = 112  # dp / pt of the launch icon tile
 source = ET.parse(RES / 'drawable/ic_launcher_foreground.xml').getroot()
@@ -24,6 +36,8 @@ paths = source.find('group').findall('path')
 tokens = (ROOT / 'packages/raft_ui/lib/src/tokens/product_colors.g.dart').read_text()
 colors = {name: re.search(r'\b' + token + r': Color\(0xff([0-9a-f]{6})\)', tokens).group(1).upper()
           for name, token in PALETTE}
+colors = {name: (ICON_BACKGROUND_OVERRIDES.get(name) or colors[name]).upper()
+          for name in colors}
 mark = ''.join(f'<path fill="#{p.attrib[A + "fillColor"][-6:]}" d="{p.attrib[A + "pathData"]}"/>' for p in paths)
 
 # `--no-raster` rewrites only the text resources (no rsvg-convert needed).

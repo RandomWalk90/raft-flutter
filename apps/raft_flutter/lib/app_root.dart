@@ -2155,7 +2155,7 @@ class _RaftAppState extends State<RaftApp> with WidgetsBindingObserver {
       textLocale: textLocale,
     );
     return MaterialApp.router(
-      title: 'Raft',
+      title: 'Ficus virens',
       routerDelegate: appRouter,
       routeInformationParser: const RaftAppRouteParser(),
       routeInformationProvider: routeInformation,

@@ -30,8 +30,8 @@ std::wstring ExecutablePath() {
 
 std::string AppId(const EncodableValue* argument) {
   const auto id = argument ? std::get_if<std::string>(argument) : nullptr;
-  if (!id || (*id != "app.raft.raft_flutter" &&
-              *id != "app.raft.raft_flutter.notificationlab")) {
+  if (!id || (*id != "cn.clawsouls.ficusvirens" &&
+              *id != "cn.clawsouls.ficusvirens.notificationlab")) {
     throw winrt::hresult_error(E_INVALIDARG);
   }
   return *id;
@@ -45,7 +45,7 @@ void RegisterShortcut(const std::wstring& executable, const std::string& id,
   winrt::check_hresult(SHGetKnownFolderPath(FOLDERID_Programs, KF_FLAG_CREATE,
                                           nullptr, &programs));
   const std::wstring folder = std::wstring(programs) +
-      (id == "app.raft.raft_flutter.notificationlab"
+      (id == "cn.clawsouls.ficusvirens.notificationlab"
           ? L"\\Raft Flutter notification lab" : L"\\Raft Flutter");
   CoTaskMemFree(programs);
   if (!CreateDirectoryW(folder.c_str(), nullptr) &&
@@ -104,7 +104,7 @@ std::string Configure(const EncodableValue* argument, HWND window) {
   if (!values) throw winrt::hresult_error(E_INVALIDARG);
   const auto id = AppId(&values->at(EncodableValue("appId")));
   const auto& guid = std::get<std::string>(values->at(EncodableValue("guid")));
-  const auto expected_guid = id == "app.raft.raft_flutter.notificationlab"
+  const auto expected_guid = id == "cn.clawsouls.ficusvirens.notificationlab"
       ? "c7f8c268-2e7c-5079-9305-1a7294c70d9d"
       : "b951813c-37ff-5d5c-95ac-f9573572c87c";
   if (guid != expected_guid) throw winrt::hresult_error(E_INVALIDARG);
@@ -130,7 +130,7 @@ std::string Configure(const EncodableValue* argument, HWND window) {
   winrt::check_win32(status);
   winrt::check_hresult(SetCurrentProcessExplicitAppUserModelID(
       winrt::to_hstring(id).c_str()));
-  if (id == "app.raft.raft_flutter.notificationlab") {
+  if (id == "cn.clawsouls.ficusvirens.notificationlab") {
     SetWindowTextW(window, L"Raft notification lab");
   }
   const auto directory = executable.substr(0, executable.find_last_of(L"\\/"));
@@ -183,7 +183,7 @@ CreateWindowsNotificationsChannel(flutter::BinaryMessenger* messenger,
             result->Success(EncodableValue(static_cast<int32_t>(
                 winrt::Windows::UI::Notifications::ToastNotificationManager::
                     History().GetHistory(
-                        L"app.raft.raft_flutter.notificationlab").Size())));
+                        L"cn.clawsouls.ficusvirens.notificationlab").Size())));
           } else {
             result->NotImplemented();
           }

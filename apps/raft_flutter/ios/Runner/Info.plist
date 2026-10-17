@@ -4,14 +4,14 @@
 <dict>
 	<key>BGTaskSchedulerPermittedIdentifiers</key>
 	<array>
-		<string>app.raft.raft_flutter.inbox_refresh</string>
+		<string>cn.clawsouls.ficusvirens.inbox_refresh</string>
 	</array>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Raft</string>
+	<string>Ficus virens</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -48,7 +48,7 @@
 	<key>RaftAppGroup</key>
 	<string>$(RAFT_APP_GROUP)</string>
 	<key>RaftShareKeychainGroup</key>
-	<string>$(AppIdentifierPrefix)app.raft.raftFlutter.shareSession</string>
+	<string>$(AppIdentifierPrefix)cn.clawsouls.ficusvirens.shareSession</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

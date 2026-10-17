@@ -21,7 +21,8 @@ scale = 640 / 274
 y = (1024 - 253 * scale) / 2
 svg = (
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">'
-    '<rect x="100" y="100" width="824" height="824" rx="184" fill="#FFD440"/>'
+    # Ficus virens brand: pale mint tile, matching the mobile launcher palette.
+    '<rect x="100" y="100" width="824" height="824" rx="184" fill="#CFE9DF"/>'
     f'<g transform="translate(192 {y}) scale({scale})">{mark}</g></svg>'
 )
 output = root / 'apps/raft_flutter/macos/Runner/Assets.xcassets/AppIcon.appiconset'

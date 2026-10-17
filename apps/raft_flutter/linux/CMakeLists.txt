@@ -20,7 +20,7 @@ if(NOT RAFT_APPLICATION_ID_SUFFIX STREQUAL "" AND
    NOT RAFT_APPLICATION_ID_SUFFIX MATCHES "^(\\.[a-z][a-z0-9_]*)+$")
   message(FATAL_ERROR "RAFT_APPLICATION_ID_SUFFIX must look like .isolated, not '${RAFT_APPLICATION_ID_SUFFIX}'")
 endif()
-set(APPLICATION_ID "app.raft.raft_flutter${RAFT_APPLICATION_ID_SUFFIX}")
+set(APPLICATION_ID "cn.clawsouls.ficusvirens${RAFT_APPLICATION_ID_SUFFIX}")
 
 # Explicitly opt in to modern CMake behaviors to avoid warnings with recent
 # versions of CMake.
@@ -169,7 +169,7 @@ else()
   set(RAFT_DESKTOP_NAME "Raft (isolated build)")
   set(RAFT_DESKTOP_MIME_LINE "")
 endif()
-configure_file(packaging/app.raft.raft_flutter.desktop.in
+configure_file(packaging/cn.clawsouls.ficusvirens.desktop.in
   "${CMAKE_BINARY_DIR}/${APPLICATION_ID}.desktop" @ONLY)
 install(FILES "${CMAKE_BINARY_DIR}/${APPLICATION_ID}.desktop"
   DESTINATION "${INSTALL_BUNDLE_DATA_DIR}/applications" COMPONENT Runtime)

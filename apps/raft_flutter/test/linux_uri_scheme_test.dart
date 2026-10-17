@@ -104,7 +104,7 @@ void main() {
   );
 
   File launcher() => File(
-    p.join(data, 'applications', 'app.raft.raft_flutter-appimage.desktop'),
+    p.join(data, 'applications', 'cn.clawsouls.ficusvirens-appimage.desktop'),
   );
 
   test('does nothing outside an AppImage or off Linux', () async {
@@ -144,14 +144,14 @@ void main() {
 
   test('a default build keeps the real application id', () {
     expect(linuxIsolatedBuild, isFalse);
-    expect(linuxApplicationId, 'app.raft.raft_flutter');
-    expect(linuxAppImageDesktopId, 'app.raft.raft_flutter-appimage');
+    expect(linuxApplicationId, 'cn.clawsouls.ficusvirens');
+    expect(linuxAppImageDesktopId, 'cn.clawsouls.ficusvirens-appimage');
   }, skip: linuxIsolatedBuild);
 
   test('the application id follows the build suffix everywhere', () {
     expect(
       linuxApplicationId,
-      'app.raft.raft_flutter$linuxApplicationIdSuffix',
+      'cn.clawsouls.ficusvirens$linuxApplicationIdSuffix',
     );
     expect(linuxAppImageDesktopId, startsWith(linuxApplicationId));
     expect(linuxIconRelative, contains('$linuxApplicationId.png'));
@@ -192,7 +192,7 @@ void main() {
       'Categories=Network;Chat;\n'
       'MimeType=x-scheme-handler/raft;\n'
       'StartupNotify=true\n'
-      'StartupWMClass=app.raft.raft_flutter\n'
+      'StartupWMClass=cn.clawsouls.ficusvirens\n'
       'X-Raft-AppImage=true\n',
     );
     expect(
@@ -283,7 +283,7 @@ void main() {
   });
 
   test('a packaged launcher as handler is another handler too', () async {
-    desktop.handler = 'app.raft.raft_flutter.desktop';
+    desktop.handler = 'cn.clawsouls.ficusvirens.desktop';
     final scheme = make(appImage: '/a/Raft.AppImage');
     await scheme.ensure();
     expect(scheme.status, LinuxSchemeStatus.otherHandler);

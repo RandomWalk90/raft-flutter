@@ -8,7 +8,7 @@ import 'package:raft_ui/raft_ui.dart';
 
 class IconApi extends FlutterDynamicIconPlusPlatform {
   bool supported = true;
-  String? actual = 'app.raft.raft_flutter.IconYellow';
+  String? actual = 'cn.clawsouls.ficusvirens.IconYellow';
   Future<String?> Function()? read;
   Future<void> Function(String?)? write;
   int writes = 0;
@@ -46,11 +46,11 @@ void main() {
   test(
     'reads OS choice and restores packaged default without account state',
     () async {
-      api.actual = 'app.raft.raft_flutter.IconPink';
+      api.actual = 'cn.clawsouls.ficusvirens.IconPink';
       await service.refresh();
       expect(service.selected, RaftAppIconPalette.pink);
       await service.select(RaftAppIconPalette.yellow);
-      expect(api.actual, 'app.raft.raft_flutter.IconYellow');
+      expect(api.actual, 'cn.clawsouls.ficusvirens.IconYellow');
       expect(service.error, isNull);
     },
   );
@@ -110,7 +110,7 @@ void main() {
     final refresh = service.refresh();
     await Future<void>.delayed(Duration.zero);
     await service.select(RaftAppIconPalette.white);
-    stale.complete('app.raft.raft_flutter.IconYellow');
+    stale.complete('cn.clawsouls.ficusvirens.IconYellow');
     await refresh;
     expect(service.selected, RaftAppIconPalette.white);
   });

@@ -64,7 +64,7 @@ void WriteProtocolValue(const std::wstring& path, const wchar_t* name,
 
 void InitializeWindowsNotificationSdk(const std::string& id, const std::string& icon) {
   if (manager) return;
-  const auto scheme = id == "app.raft.raft_flutter.notificationlab"
+  const auto scheme = id == "cn.clawsouls.ficusvirens.notificationlab"
       ? L"raft-notification-lab" : L"raft-notification";
   const auto path = std::wstring(L"Software\\Classes\\") + scheme;
   WriteProtocolValue(path, nullptr, L"URL:Raft notification");
@@ -80,10 +80,10 @@ void InitializeWindowsNotificationSdk(const std::string& id, const std::string& 
     // SDK protocol launches prefix their argument with ----ms-protocol:.
     winrt::Microsoft::Windows::AppLifecycle::ActivationRegistrationManager::
         RegisterForProtocolActivation(scheme, winrt::to_hstring(icon),
-            id == "app.raft.raft_flutter.notificationlab" ? L"Raft notification lab" : L"Raft",
+            id == "cn.clawsouls.ficusvirens.notificationlab" ? L"Raft notification lab" : L"Raft",
             L"\"" + ExecutablePath() + L"\"");
     manager = winrt::Microsoft::Windows::AppNotifications::AppNotificationManager::Default();
-    manager.Register(id == "app.raft.raft_flutter.notificationlab" ? L"Raft notification lab" : L"Raft",
+    manager.Register(id == "cn.clawsouls.ficusvirens.notificationlab" ? L"Raft notification lab" : L"Raft",
         winrt::Windows::Foundation::Uri(winrt::to_hstring(icon)));
     app_id = id;
     const auto directory = ExecutablePath().substr(0, ExecutablePath().find_last_of(L"\\/"));
