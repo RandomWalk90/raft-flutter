@@ -297,6 +297,12 @@ jobs:
           </dict></plist>
           PLIST
                 flutter build ios --release --no-codesign "${DEFINES[@]}"
+                # Xcode resolves a target's profile at ARCHIVE time from its build
+                # settings; exportOptions only covers export. Patch each target's
+                # PROVISIONING_PROFILE_SPECIFIER in this runner's copy of the
+                # project (the committed project is unchanged).
+                python3 "$GITHUB_WORKSPACE/tool/patch-ios-profiles.py" ios/Runner.xcodeproj/project.pbxproj \
+                  "$APP_UUID" "$SHARE_UUID" "$ACTION_UUID"
                 archive="$RUNNER_TEMP/FicusVirens.xcarchive"
                 xcodebuild -workspace ios/Runner.xcworkspace -scheme Runner \
                   -configuration Release -destination 'generic/platform=iOS' \
